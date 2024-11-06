@@ -17,7 +17,7 @@ These steps were used to analyse the three initial screens carried out on the Wa
 
 ## Step 2: GWAS
 The estimated means calculated as described above were used as input for GWAS as part of the [WatSeq project](https://doi.org/10.1038/s41586-024-07682-9). 
-[See GWAS pipeline here]([https://github.com/JIC-CSB/WatSeqAnalysis](https://github.com/ShifengCHENG-Laboratory/WWWG2B)). 
+[See GWAS pipeline here](https://github.com/ShifengCHENG-Laboratory/WWWG2B). 
 
 ## Step 3: Generation of SNP distance matrix 
 Python script: `VCFparse_distance` 

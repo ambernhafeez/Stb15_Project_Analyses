@@ -74,3 +74,12 @@ And this script for data analysis: https://rpubs.com/liziqi961/981419
 
 R Markdown notebook: 
 
+## Step 6: Evolutionary analysis
+
+The protein predicted from the ArinaLrFor allele of Stb15 was used to perform blastp searches against 32 plant species and the top hits were used to generate a phylogenetic tree. The clade containing Stb15 was then extracted from the tree and the gene annotations corresponding to these proteins were obtained from the GFF files of their respective genomes. 
+
+The intron/exon structure of each gene in the clade most closely related to _Stb15_ was plotted in R. The code used to do this is presented in `draw_gene_annotations.R`. The script was written with help from [this tutorial](https://dbsloan.github.io/TS2019/exercises/r_figure_drawing.html).
+
+The main input file required is a text file containing gene annotations extracted from GFF files - the gene name, start position, end position, strand and feature (exon, CDS, gene). Additionally, information about the clade position of each gene can be used to plot each gene in the correct order so it can later be aligned with a tree. 
+
+This method was used to generate Figure 3c and Supplementary Figure 8 in Hafeez et al. (2023).

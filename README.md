@@ -1,9 +1,11 @@
 # Scripts for analyses used in the _Stb15_ project
-R scripts used for the statistical analysis of Septoria tritici blotch pathology data, plot generation, haplotype analysis and Principal Coordinate Analysis for the [publication detailing the cloning of Stb15 using the Watkins collection of wheat landraces](https://doi.org/10.1101/2023.09.11.557217). 
+These scripts were used for analysis and generation of figures in the [publication detailing the cloning of Stb15 using the Watkins collection of wheat landraces](https://doi.org/10.1101/2023.09.11.557217) (Hafeez et al., 2023). 
+
+R scripts/notebooks include the statistical analysis of Septoria tritici blotch pathology data, plot generation, haplotype analysis and Principal Coordinate Analysis. R markdown notebooks are also provided as `.html` files. These can be downloaded and viewed in a browser to allow the code alongisde outputs to be visualised.
+
+Calculation of a SNP distance matrix was done using a Python script.
 
 The steps each script/notebook was used for are detailed below.
-
-R markdown notebooks are also provided as `.html` files. These can be downloaded and viewed in a browser to allow the code alongisde outputs to be visualised.
 
 ## Step 1: Analysis of Septoria pathology data in the core 300 Watkins landraces
 R script: `Watkins_core300_Septoria_analysis.R`
@@ -24,6 +26,7 @@ The estimated means calculated as described above were used as input for GWAS as
 ## Step 3: Generation of SNP distance matrix 
 
 Python script: `VCFparse_distance` 
+
 Written by Amber Hafeez and Burkhard Steuernagel
 
 The candidate regions from the GWAS were analysed with the above script to later define haplotype groups. 

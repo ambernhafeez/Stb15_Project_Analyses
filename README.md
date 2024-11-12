@@ -1,5 +1,5 @@
 # Scripts for analyses used in the _Stb15_ project
-R scripts used for the analysis of Septoria tritici blotch pathology data, plot generation, haplotype analysis adn Principle Coordinates Analysis for the [publication detailing the cloning of Stb15 using the Watkins collection of wheat landraces](https://doi.org/10.1101/2023.09.11.557217). 
+R scripts used for the statistical analysis of Septoria tritici blotch pathology data, plot generation, haplotype analysis and Principal Coordinate Analysis for the [publication detailing the cloning of Stb15 using the Watkins collection of wheat landraces](https://doi.org/10.1101/2023.09.11.557217). 
 
 The steps each script/notebook was used for are detailed below.
 

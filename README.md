@@ -20,6 +20,7 @@ The estimated means calculated as described above were used as input for GWAS as
 [See GWAS pipeline here](https://github.com/ShifengCHENG-Laboratory/WWWG2B). 
 
 ## Step 3: Generation of SNP distance matrix 
+
 Python script: `VCFparse_distance` 
 Written by Amber Hafeez and Burkhard Steuernagel
 
@@ -32,9 +33,13 @@ Input files required:
 R Markdown notebook:
 
 ## Step 5: Generation of informative plots
+
 R Markdown notebook: `Pycnidia_plots_Stb_genes.Rmd`
 
 This script shows how the plots in figures 1b and 3a were generated. These figures plot lines/landraces either by pycnidia score or geographical location with the alleles of _Stb6_ and _Stb15_ indicated by their colour and shape. 
+
+A PCA plot was generated following the steps of this script for data preparation: https://rpubs.com/liziqi961/980723  
+And this script for data analysis: https://rpubs.com/liziqi961/981419
 
 ## Step 6: Evaluation of transgenic lines carrying _Stb15_
 R Markdown notebook:

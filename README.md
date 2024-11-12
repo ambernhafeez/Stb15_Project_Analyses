@@ -1,5 +1,5 @@
 # Scripts for analyses used in the _Stb15_ project
-R scripts used for the analysis of Septoria tritici blotch pathology data, plot generation, haplotype analysis adn Principle Coordinates Analysis for the [publication detailing the cloning of_Stb15_using the Watkins collection of wheat landraces](https://doi.org/10.1101/2023.09.11.557217). 
+R scripts used for the analysis of Septoria tritici blotch pathology data, plot generation, haplotype analysis adn Principle Coordinates Analysis for the [publication detailing the cloning of Stb15 using the Watkins collection of wheat landraces](https://doi.org/10.1101/2023.09.11.557217). 
 
 The steps each script/notebook was used for are detailed below. 
 
@@ -32,7 +32,9 @@ Input files required:
 R Markdown notebook:
 
 ## Step 5: Generation of informative plots
-R Markdown notebook:
+R Markdown notebook: `Pycnidia_plots_Stb_genes.Rmd`
+
+This script shows how the plots in figures 1b and 3a were generated. These figures plot lines/landraces either by pycnidia score or geographical location with the alleles of _Stb6_ and _Stb15_ indicated by their colour and shape. 
 
 ## Step 6: Evaluation of transgenic lines carrying _Stb15_
 R Markdown notebook:

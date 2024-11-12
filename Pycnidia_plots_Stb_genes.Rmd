@@ -100,7 +100,7 @@ library(ggmap)
 It is required to register a Google API key. This can be generated following instructions [here](https://support.google.com/googleapi/answer/6158862?hl=en).
 ```{r}
 register_google(key = 
-                "AIzaSyDKVWknyxoHsbdIkixqRLdUxnm7XUye7TQ")
+                "KEY")
 ```
 
 Merge the location data with the rest of the data, removing cultivars:

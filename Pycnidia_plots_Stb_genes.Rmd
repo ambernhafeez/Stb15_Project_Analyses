@@ -1,0 +1,125 @@
+---
+title: "Plotting responses to STB isolates"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load tables of means
+```{r}
+dat <- read.csv("/Users/hafeeza/Documents/WatSeq/Analyses_for_paper/WatSeqStb_fulltable.csv", na.strings = "-", header = TRUE)
+```
+```{r, include=FALSE}
+# remove unneeded columns
+dat <- dat[,-c(5,9,10,14)]
+```
+
+```{r}
+head(dat)
+```
+
+### Format data
+
+Creating a column called 'SimpAlleles' which indicates whether lines have functional alleles of Stb6 or Stb15.
+```{r}
+dat[which(dat$Stb6=="1" | dat$Stb6=="2") , "SimpStb6"] <- "1"
+dat[is.na(dat$SimpStb6), 'SimpStb6'] <- "0" 
+
+dat[which(dat$Stb15=="A/R"), "SimpStb15"] <- "1"
+dat[is.na(dat$SimpStb15), 'SimpStb15'] <- "0"
+
+dat[which(dat$SimpStb6=="1"), 'SimpAlleles'] <- "Stb6"
+dat[which(dat$SimpStb15=="1"), 'SimpAlleles'] <- "Stb15"
+dat[which(dat$SimpStb15=="1" & dat$SimpStb6 =="1"), 'SimpAlleles'] <- "Stb15+Stb6"
+dat[is.na(dat$SimpAlleles), 'SimpAlleles'] <- "None"
+dat[1:21, 'Type'] <- "Cultivar"
+dat$Line <- as.factor(dat$Line)
+
+# Don't need Baj labelled in the figures so giving it a different category
+dat[2,'Type'] <- 'Wheat'
+```
+
+Load packages needed
+```{r}
+if(!require(ggplot2)){install.packages(ggplot2)}
+library(ggplot2)
+if(!require(cowplot)){install.packages(cowplot)}
+library(cowplot)
+if(!require(ggpubr)){install.packages(ggpubr)}
+library(ggpubr)
+if(!require(ggrepel)){install.packages(ggrepel)}
+library(ggrepel)
+```
+
+### Generate plot of pcynidia scores by allele
+
+This plot is of logit pycnidia AUDPC scores of IPO323 and IPO88004 plotted against eachother, with the allele combination of each line indicated by its shape and colour.
+```{r}
+ggplot(dat, aes(y=LogitpAUDPC_IPO88004, x=LogitpAUDPC_IPO323, fill=SimpAlleles, shape=SimpAlleles)) +
+  geom_point(aes(y=LogitpAUDPC_IPO88004, x=LogitpAUDPC_IPO323),size=2, colour="#5A5757") +
+  scale_fill_manual(values=c("#ABADB3", "#FFB000", "#DC267F", "#785EF0")) +
+  scale_shape_manual(values=c(25,22,23,21)) +
+  xlab("Logit pAUDPC IPO323") + ylab("Logit pAUDPC IPO88004") +
+  geom_label_repel(data = subset(dat, Type=="Cultivar"), aes(y=LogitpAUDPC_IPO88004, x=LogitpAUDPC_IPO323,label=Line, colour=SimpAlleles), min.segment.length=unit(0,'lines'), fill="white", show.legend = FALSE, nudge_y = 2, nudge_x = 3) +
+  scale_colour_manual(values=c("#ABADB3", "#FFB000", "#DC267F", "#785EF0")) +
+  theme_half_open() +
+  background_grid()
+  #ggsave("Pycplot_Stbgenes.png", height=5, width=6.5)
+```
+Reverse logit transformation of axes:
+```{r}
+al = c(-9, -8, -6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8)
+
+inv.logit <- function(y,a) {
+  ((100+a)*exp(y) - a) / (1+exp(y))
+}
+
+zapsmall(inv.logit(al,a=0.5))
+```
+
+### Plot by place of origin
+
+Load the origin/location data and remove missing values:
+```{r}
+org <- read.csv("/Users/hafeeza/Documents/WatSeq/Analyses_for_paper/watkins_origins.csv")
+cs <- org[which(org$WatNo!="#N/A"), ]
+head(cs)
+```
+
+Install ggmap, which uses Google Maps:
+```{r}
+if(!require(devtools)) install.packages("devtools",repos = "https://cran.ma.imperial.ac.uk/")
+devtools::install_github("dkahle/ggmap", ref = "tidyup")
+library(ggmap)
+```
+It is required to register a Google API key. This can be generated following instructions [here](https://support.google.com/googleapi/answer/6158862?hl=en).
+```{r}
+register_google(key = 
+                "AIzaSyDKVWknyxoHsbdIkixqRLdUxnm7XUye7TQ")
+```
+
+Merge the location data with the rest of the data, removing cultivars:
+```{r}
+colnames(cs)[2] <- "Line"
+dat2 <- merge(dat, cs, by="Line")
+wonly <- dat2[-which(dat2$Type=="Cultivar"),]
+```
+Plot the landraces by longitude and latitude onto the map, with colours and shapes of points corresponding to their combination of Stb6 and Stb15 alleles:
+```{r}
+theme_set(theme_bw(16))
+world_map <- map_data("world")
+ggplot() + 
+  geom_polygon(data=world_map, aes(x=long, y=lat,group=group), colour="#5A5757", fill="#EFEAED", linewidth=0.4) +
+  geom_point(aes(x = Longitude, y = Latitude, fill = SimpAlleles, shape=SimpAlleles),
+             colour="#5A5757", stroke=0.4, size=1.7, data = wonly) +
+  scale_fill_manual(values=c("#ABADB3", "#FFB000", "#DC267F", "#785EF0")) +
+   scale_shape_manual(values=c(25,22,23,21)) +
+  theme_map(12)
+#ggsave("map.png", width=24, height=13)
+```
+

@@ -58,7 +58,7 @@ R Markdown notebook: `Haplotype_heatmaps.Rmd`
 
 This notebook details the process of using a SNP distance matrix of a gene/locus (**Step 3**) and phenotype data (**Step 1**) to generate a heatmap using `pheatmap` and subsequently identify alleles of interest.
 
-## Step 5: Generation of informative plots
+### Step 4.5: Generation of informative plots
 
 R Markdown notebook: `Pycnidia_plots_Stb_genes.Rmd`
 
@@ -70,7 +70,7 @@ This script shows how the plots in figures 1b, 3a and 3b were generated. These f
 The PCA plot was generated following the steps of this script for data preparation: https://rpubs.com/liziqi961/980723  
 And this script for data analysis: https://rpubs.com/liziqi961/981419
 
-## Step 6: Evaluation of transgenic lines carrying _Stb15_
+## Step 5: Evaluation of transgenic lines carrying _Stb15_
 
 R Markdown notebook: 
 

@@ -1,0 +1,319 @@
+---
+title: "Analysis of _Stb15_ transgenics screened with STB isolates"
+author: "Amber N. Hafeez"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data loading, removal of blank lines and data type conversion
+```{r}
+test1 <- read.csv("/Users/hafeeza/Documents/Stb15_Analyses/Transgenics/septoria_transgenics.csv", na.strings=c("*", "-","NA"), head=T)
+test2 <- read.csv("/Users/hafeeza/Documents/Stb15_Analyses/Transgenics/stb15_transgenics_test2.csv", na.strings=c("*", "-","NA"), head=T)
+rename <- read.csv("/Users/hafeeza/Documents/Stb15_Analyses/Transgenics/stb15_transgenics_renaming.csv", head=T)
+
+# remove blank lines (these were included for experimental design purposes)
+test1n <- test1[!(test1$Variety %in% c("Blank1", "Blank2", "Blank3", "Blank4")), ]
+test2n <- test2[!(test2$Variety %in% c("Blank1", "Blank2", "Blank3", "Blank4", "Blank5", "Blank")), ]
+
+sapply(test1n, class)
+test1n[,1:5] <- lapply(test1n[,1:5], factor)
+test1n[,6:13] <- lapply(test1n[,6:13], as.numeric)
+
+test2n[,1:5] <- lapply(test2n[,1:5], factor)
+test2n[,6:13] <- lapply(test2n[,6:13], as.numeric)
+
+sapply(test1n, class)
+head(test1n)
+```
+
+## Calculation of AUDPC 
+
+Function to calculate AUDPC for 4 scoring days.
+```{r}
+audpc <- function(df, day1, day2, day3, day4, insubset, ptype) {
+(day2-day1)*(df[df$Isolate %in% insubset, paste0(ptype,day1)] + df[df$Isolate %in% insubset, paste0(ptype,day2)])/2 +
+(day3-day2)*(df[df$Isolate %in% insubset, paste0(ptype,day2)] + df[df$Isolate %in% insubset, paste0(ptype,day3)])/2 +
+(day4-day3)*(df[df$Isolate %in% insubset, paste0(ptype,day3)] + df[df$Isolate %in% insubset, paste0(ptype,day4)])/2
+}
+```
+
+Calculations for each dataset. Scoring days were the same for both isolates so the same AUDPC calculation can be done. 
+```{r}
+test1n[, "pAUDPC"] <- audpc(test1n, 21, 25, 29, 32, insubset=c("IPO88004", "IPO92006"), ptype="p")
+test1n[, "dAUDPC"] <- audpc(test1n, 21, 25, 29, 32, insubset=c("IPO88004", "IPO92006"), ptype="d")
+
+test2n[, "pAUDPC"] <- audpc(test2n, 17, 20, 24, 27, insubset=c("IPO88004", "IPO92006"), ptype="p")
+test2n[, "dAUDPC"] <- audpc(test2n, 17, 20, 24, 27, insubset=c("IPO88004", "IPO92006"), ptype="d")
+```
+
+Total number of scoring days is slightly different in each dataset so the %max AUDPC will allow a better comparison:
+```{r}
+max1 = (32-21)*100
+max2 = (27-17)*100
+
+test1n$pmax_pAUDPC <- (test1n$pAUDPC/max1)*100
+test1n$pmax_dAUDPC <- (test1n$dAUDPC/max1)*100
+test2n$pmax_pAUDPC <- (test2n$pAUDPC/max1)*100
+test2n$pmax_dAUDPC <- (test2n$dAUDPC/max1)*100
+```
+
+Combine datasets
+```{r}
+test1n$Test <- "Test 1"
+test2n$Test <- "Test 2"
+
+test1.a <- test1n[, c(1:5,14:18)]
+test2.a <- test2n[, c(1:5,14:18)]
+
+# version with less columns
+dat <- merge(test1.a, test2.a, all=T)
+
+# version with all columns
+alldat <- merge(test1n, test2n, all = T)
+```
+
+Perform logit transformation for each test with respective max scores and the smallest possible score for each dataset:
+```{r}
+min_score_test1 = (4*(0+1)/2)/4
+min_score_test2 = (3*(0+1)/2)/4
+
+dat[dat$Test=="Test 1", "lgt_pAUDPC"] <- log((dat[dat$Test=="Test 1", "pAUDPC"] + min_score_test1) / ((1100 + min_score_test1) - dat[dat$Test=="Test 1", "pAUDPC"]))
+dat[dat$Test=="Test 2", "lgt_pAUDPC"] <- log((dat[dat$Test=="Test 2", "pAUDPC"] + min_score_test2) / ((1000 + min_score_test2) - dat[dat$Test=="Test 2", "pAUDPC"]))
+```
+
+Rename lines with updated transgenic line name codes. Also generate Genotype column to group lines by similar Stb15 status/genotype. This will be used for labelling later:
+```{r}
+dat <- merge(rename, dat, by="Variety")
+dat$Variety <- dat$new_name
+dat <- dat[,-2]
+
+dat[dat$Variety %in% c("ChineseSpring"), "Genotype"] <- "Control -Stb15"
+dat[dat$Variety %in% c("Arina", "Longbow"), "Genotype"] <- "Control +Stb15"
+dat[dat$Variety %in% c("BastardII"), "Genotype"] <- "Resistant Control"
+dat[dat$Variety %in% c("Fielder"), "Genotype"] <- "Wildtype Fielder"
+dat[dat$Variety %in% c("Escape", "Null-2.1:0", "Null-1.1:0"), "Genotype"] <- "Negative Control Fielder"
+dat[dat$Variety %in% c("GRF-5:4", "GRF-6:4"), "Genotype"] <- "Fielder +GRF -Stb15"
+dat[dat$Variety %in% c("Stb15-1.2:2", "Stb15-2.2:2", "Stb15-2.3:2"), "Genotype"] <- "Fielder +Stb15 T0:1"
+dat[dat$Variety %in% c("Stb15-4:4"), "Genotype"] <- "Fielder +Stb15 T0:2"
+dat[dat$Variety %in% c("Stb15-3.1:2", "Stb15-3.2:5", "Stb15-3.3:7"), "Genotype"] <- "Fielder +Stb15 T0:4"
+
+head(dat)
+```
+
+Load packages needed
+```{r}
+library(ggplot2)
+library(ggsignif)
+library(cowplot)
+library(ggrepel)
+library(pbkrtest)
+library(Matrix)
+library(lmerTest)
+library(emmeans)
+```
+
+## Violin/box plots of raw data
+
+These plots are split by isolate and coloured by test. The number of replicated for each isolate and test is shown in the table below:
+```{r}
+table(dat$Variety, dat$Test, dat$Isolate)
+```
+
+```{r}
+ggplot(dat, aes(x=pmax_pAUDPC, y=Variety, fill=Test)) +
+  geom_boxplot(width = 0.8, fill = "white", color = "black", outlier.shape = NA) +
+  geom_violin(scale = "width", alpha=0.5) +
+  facet_wrap(~Isolate)
+```
+Results appear to be more consistent between tests of IPO88004 than IPO92006. This could be due to differences in sample size (IPO88004 tests had more samples). In general, IPO88004 pycnidia scores seemed to be greater and more variable in Test 2, but resistant lines like Longbow, Bastard, Arina and the Stb15 transgenic lines had consistently low scores. Virulence on wildtype Fielder was lower than expected. Pycnidia scores were typically higher in the IPO92006 test.
+
+```{r}
+ggplot(dat, aes(x=pmax_dAUDPC, y=Variety, fill=Test)) +
+  geom_boxplot(width = 0.8, fill = "white", color = "black", outlier.shape = NA) +
+  geom_violin(scale = "width", alpha=0.5) +
+  facet_wrap(~Isolate)
+```
+Damage scores seem far more variable than pycnidia scores, especially in Test 1 of IPO88004. 
+
+## Statistical analysis
+
+Several versions of the model are tested to check whether the random effects significantly improve ability of the model to explain variance. Model fitting was also tested separately in Genstat.
+
+`lgt_pmod_full_v` has the most full version of the model, with the `Test*Isolate` and `Isolate*Variety` main effects and random effects of `Test:Tray`, `Test:Tray:Rep`, `Test:Variety` and `Test:Variety:Isolate`. 
+
+`lgt_pmod_v_lessv` has the random effect of `Test:Variety:Isolate` removed.
+
+`lgt_pmod_v_nov` has both random effects which include Variety removed (`Test:Variety` and `Test:Variety:Isolate`).
+
+The line Stb15-3.3:7 had to be removed as there were not enough replicates and it was only included in one test with one isolate. This was due to a very poor seed yield. 
+```{r}
+dat.nocn4.7 <- dat[!(dat$Variety=="Stb15-3.3:7"), ]
+
+lgt_pmod_full_v <- lmer(lgt_pAUDPC ~ Test*Isolate + Isolate*Variety + (1|Test:Tray) + (1|Test:Tray:Rep) + (1|Test:Variety) + (1|Test:Variety:Isolate), data = dat.nocn4.7)
+anova(lgt_pmod_full_v)
+
+# checking necessity of random effect of variety
+lgt_pmod_v_lessv <- lmer(lgt_pAUDPC ~ Test*Isolate + Isolate*Variety + (1|Test:Tray) + (1|Test:Tray:Rep) + (1|Test:Variety), data = dat.nocn4.7)
+
+lgt_pmod_v_nov <- lmer(lgt_pAUDPC ~ Test*Isolate + Isolate*Variety + (1|Test:Tray) + (1|Test:Tray:Rep), data = dat.nocn4.7)
+```
+
+Pairwise comparisons of the models will demonstrate whether there is an impact of removing the random effects:
+```{r}
+anova(lgt_pmod_v_nov, lgt_pmod_full_v, REML=F)
+anova(lgt_pmod_v_lessv, lgt_pmod_full_v, REML=F)
+```
+These results suggest that the random effect of variety does not significantly explain more residual variance. Therefore to simplify the model, we will move forward with `lgt_pmod_v_nov`.
+
+Anova and summary tables for the final model:
+```{r}
+anova(lgt_pmod_v_nov)
+summary(lgt_pmod_v_nov)
+
+rm(lgt_pmod_full_v, lgt_pmod_v_lessv)
+```
+
+Plot and check residuals vs fitted values, histogram of residuals and normal Q-Q plot:
+```{r}
+res.lev1 <- resid(lgt_pmod_v_nov,scaled=T) 
+fit.fix <- predict(lgt_pmod_v_nov, re.form=~0)
+
+par(mfrow=c(2,2))
+qqnorm(res.lev1)
+plot(res.lev1~fit.fix, main="Fitted-Value Plot") 
+hist(res.lev1, main = "Histogram of Residuals") 
+mtext("lgt_pAUDPC", side = 3, line = -1, outer = TRUE) 
+```
+These plots indicate a good model fit.
+
+### Fitting a model to damage data
+
+```{r}
+dmod_full_v <- lmer(pmax_dAUDPC ~ Test*Isolate + Isolate*Variety + (1|Test:Tray) + (1|Test:Tray:Rep) + (1|Test:Variety) + (1|Test:Variety:Isolate), data = dat.nocn4.7)
+anova(dmod_full_v)
+
+dmod_v_nov <- lmer(pmax_dAUDPC ~ Test*Isolate + Isolate*Variety + (1|Test:Tray) + (1|Test:Tray:Rep), data = dat.nocn4.7)
+dmod_v_lessv1 <- lmer(pmax_dAUDPC ~ Test*Isolate + Isolate*Variety + (1|Test:Tray) + (1|Test:Tray:Rep) + (1|Test:Variety), data = dat.nocn4.7)
+dmod_v_lessv2 <- lmer(pmax_dAUDPC ~ Test*Isolate + Isolate*Variety + (1|Test:Tray) + (1|Test:Tray:Rep) + (1|Test:Variety:Isolate), data = dat.nocn4.7)
+
+# comparisons
+anova(dmod_v_nov, dmod_full_v, REML=F)
+anova(dmod_v_lessv1, dmod_full_v, REML=F)
+anova(dmod_v_lessv2, dmod_full_v, REML=F)
+```
+In the case of the damage data, there was a significant effect of removing the random effect of varieties within tests (`Test:Variety`), but not of `Test:Variety:Isolate`. So in this case, this random component was left in the model. 
+```{r}
+anova(dmod_v_lessv1)
+summary(dmod_v_lessv1)
+
+rm(dmod_full_v, dmod_v_lessv2, dmod_v_nov)
+```
+Plot and check residuals vs fitted values, histogram of residuals and normal Q-Q plot:
+```{r}
+res.lev1 <- resid(dmod_v_lessv1,scaled=T) 
+fit.fix <- predict(dmod_v_lessv1, re.form=~0)
+
+par(mfrow=c(2,2))
+qqnorm(res.lev1)
+plot(res.lev1~fit.fix, main="Fitted-Value Plot") 
+hist(res.lev1, main = "Histogram of Residuals") 
+mtext("% max. dAUDPC", side = 3, line = -1, outer = TRUE) 
+```
+The plots indicate a good model fit.
+
+## Estimated marginal means
+
+Looking at pairwise comparisons between each genotype group averaged over Test and separated by Isolate. Used methods as detailed in this [cran.r guide to emmeans comparisons](https://cran.r-project.org/web/packages/emmeans/vignettes/comparisons.html#:~:text=all%20vignette%20topics-,Pairwise%20comparisons,then%20compare%20the%20sources%20pairwise.)
+
+Red arrows represent pairwise comparisons whilst the blue/purple boxes represent confidence intervals. Where they overlap, the groups are not significantly different from each other.
+
+For pycnidia:
+```{r}
+emlgtp.v <- emmeans(lgt_pmod_v_nov, c("Variety"), by=c("Isolate"))
+pairs(emlgtp.v)
+plot(emlgtp.v, comparisons=T, )
+dev.off()
+```
+There is clear separation of the means of the transgenic lines carrying _Stb15_ from Fielder, the nulls and GRF construct-containing transgenic controls. There is one exception which is that Stb15-1.2:2 slightly overlaps with Fielder. This effect is isolate-specific, as demonstrated by fact that there is no significant difference between transgenics carrying _Stb15_ and Fielder (and other lines that do not carry the gene) when looking at IPO92006 pycnidia scores. 
+
+For damage:
+```{r}
+empmd.v <- emmeans(dmod_v_lessv1, c("Variety"), by=c("Isolate"))
+pairs(empmd.v)
+plot(empmd.v, comparisons=T, )
+dev.off()
+```
+Although some resistant leaf samples were observed to have low damage scores, this was not consistent enough across reps to be statistically significant.Pairwise comparisons showed no differences between groups. This could be because damage scores are more likely to be affected by environmental stressors leading to high residual variance that could unfortunately not be sufficiently explained by our model.
+
+Extracting line means:
+```{r}
+emm.pmod <- emmeans::emmeans(lgt_pmod_v_nov, specs="Isolate", by="Variety"); est.pmod <- as.data.frame(emm.pmod)
+
+emm.dmod <- emmeans::emmeans(dmod_v_lessv1, specs="Isolate", by="Variety"); est.dmod <- as.data.frame(emm.dmod)
+```
+
+## Plots of estimated means
+
+Prepare the data for plotting. Separate columns are needed for IPO88004 and IPO92006 results and the genotype group information needs to be added.
+```{r}
+palette9 = c("#000000", "#737372", "#D55E00", "#56B4E9", "#009E73", "#0072B2", "#CC79A7", "#F0E442", "#E69F00")
+
+est.lgtp.IPO92006 <- est.pmod[est.pmod$Isolate=="IPO92006", ]
+colnames(est.lgtp.IPO92006)[3] <- "lgt_pAUDPC_IPO92006" 
+est.lgtp.IPO88004 <- est.pmod[est.pmod$Isolate=="IPO88004", ]
+colnames(est.lgtp.IPO88004)[3] <- "lgt_pAUDPC_IPO88004" 
+ests.by.isolate.p <- merge(est.lgtp.IPO88004, est.lgtp.IPO92006, by="Variety")
+
+est.dam.IPO92006 <- est.dmod[est.dmod$Isolate=="IPO92006", ]
+colnames(est.dam.IPO92006)[3] <- "pmax_dAUDPC_IPO92006" 
+est.dam.IPO88004 <- est.dmod[est.dmod$Isolate=="IPO88004", ]
+colnames(est.dam.IPO88004)[3] <- "pmax_dAUDPC_IPO88004" 
+ests.by.isolate.d <- merge(est.dam.IPO88004, est.dam.IPO92006, by="Variety")
+
+groups <- unique(dat[,c("Variety", "Genotype")])
+
+ests.by.isolate.p <- merge(ests.by.isolate.p, groups, by="Variety")
+ests.by.isolate.d <- merge(ests.by.isolate.d, groups, by="Variety")
+ests.by.isolate <- merge(ests.by.isolate.p[,c("Variety","Genotype", "lgt_pAUDPC_IPO92006","lgt_pAUDPC_IPO88004")], ests.by.isolate.d[,c("Variety", "pmax_dAUDPC_IPO92006", "pmax_dAUDPC_IPO88004")], by="Variety")
+
+```
+
+Plot of mean logit pAUDPC and % max. damage scores vs IPO88004 plotted against each other:
+```{r}
+ggplot(ests.by.isolate, aes(y=lgt_pAUDPC_IPO88004, x=pmax_dAUDPC_IPO88004, color=Genotype)) +
+  geom_point() +
+  scale_color_manual(values=palette9) +
+  geom_label_repel(data = ests.by.isolate, aes(label=Variety, color=Genotype), fill="white", show.legend = FALSE) +
+  theme_half_open() +
+  background_grid(minor = "xy")
+```
+It is clear that the transgenic lines with Stb15 cluster with the resistant controls whilst the control lines containing GRF-GIF and the nulls cluster with the susceptible lines including Fielder and Chinese Spring. It can clearly be observed that the amount of leaf damage varied in lines considered resistant due to their pycnidia score. Transgenics in the Fielder +Stb15 T0:4 family were the most green, similarly to resistant controls Bastard II and Arina.
+
+Plot of mean logit pAUDPC scores vs each isolate plotted against each other:
+```{r}
+ggplot(ests.by.isolate, aes(y=lgt_pAUDPC_IPO88004, x=lgt_pAUDPC_IPO92006, color=Genotype)) +
+  geom_point() +
+  scale_color_manual(values=palette9) +
+  geom_label_repel(data = ests.by.isolate, aes(label=Variety, color=Genotype), fill="white", show.legend = FALSE) +
+  theme_half_open() +
+  background_grid(minor = "xy")
+```
+This demonstrates that low pycnidia scores of the _Stb15_ transgenics in response to IPO88004 were isolate-specific and the gene does not confer resistance to the control virulent isolate IPO92006.
+
+Plot of mean % max. dAUDPC scores vs each isolate plotted against each other:
+```{r}
+ggplot(ests.by.isolate.d, aes(y=pmax_dAUDPC_IPO88004, x=pmax_dAUDPC_IPO92006, color=Genotype)) +
+  geom_point() +
+  scale_color_manual(values=palette9) +
+  geom_label_repel(data = ests.by.isolate.d, aes(label=Variety, color=Genotype), fill="white", show.legend = FALSE) +
+  theme_half_open() +
+  background_grid(minor = "xy")
+```
+Transgenics in the Fielder +Stb15 T0:4 family seemed to show some isolate-specificity in their damage scores. However, this was not significant according to the pairwise comparisons.
+
+
+
+

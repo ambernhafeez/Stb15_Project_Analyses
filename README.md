@@ -9,7 +9,9 @@ The steps each script/notebook was used for are detailed below.
 
 ## Step 1: Analysis of Septoria pathology data in the core 300 Watkins landraces
 R script: `Watkins_core300_Septoria_analysis.R`
+
 This script contains several steps as follows:
+
 1. Read and format the data
 2. Calculate the % maximum dAUDPC
 3. Fit linear mixed models to pycnidia and damage datasets
@@ -25,7 +27,7 @@ The estimated means calculated as described above were used as input for GWAS as
 
 ## Step 3: Generation of SNP distance matrix 
 
-Python script: `VCFparse_distance` 
+Python script: `vcf_parse_distance.py` 
 
 Written by Amber Hafeez and Burkhard Steuernagel
 

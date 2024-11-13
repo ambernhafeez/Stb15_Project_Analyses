@@ -17,7 +17,7 @@ This script contains several steps as follows:
 5. Calculate estimated marginal means from the models
 6. Final formatting of datasets
 
-These steps were used to analyse the three initial screens carried out on the Watkins core 300 collection. 
+These steps were used to analyse the three initial screens carried out on the Watkins core 300 collection. Similar steps were undertaken in **Step 5**, wherein a more detailed notebook detailing the analysis process is provided.
 
 ## Step 2: GWAS
 The estimated means calculated as described above were used as input for GWAS as part of the [WatSeq project](https://doi.org/10.1038/s41586-024-07682-9). 
@@ -72,7 +72,9 @@ And this script for data analysis: https://rpubs.com/liziqi961/981419
 
 ## Step 5: Evaluation of transgenic lines carrying _Stb15_
 
-R Markdown notebook: 
+R Markdown notebook: `Stb15_transgenics_analysis.Rmd`
+
+This notebook contains a step-by-step explanation of the steps undertaken to fit linear mixed models to pathology results from testing _Z. tritici_ isolates on transgenic lines carrying _Stb15_ and controls. The process for generation of plots from Supplementary Figure 7 and their interpretation is also detailed. 
 
 ## Step 6: Evolutionary analysis
 

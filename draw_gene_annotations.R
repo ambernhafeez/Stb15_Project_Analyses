@@ -2,7 +2,6 @@
 # Drawing genes #
 #################
 
-# code is adapted from https://dbsloan.github.io/TS2019/exercises/r_figure_drawing.html
 # this code is intended to draw the intron/exon structure of homologs with information extracted from GFF files
 
 # input file should contain information from the GFF such as feature type (exon, gene), start, end, strand, etc for each gene of interest
